@@ -1,0 +1,6 @@
+/target/*
+*.class
+
+nb-configuration.xml
+
+dependency-reduced-pom.xml
