@@ -23,16 +23,18 @@ import java.util.Objects;
 /**
  * Represents a pair of objects
  * @author Davide Mottin <mottin@disi.unitn.eu>
+ * @param <T1>
+ * @param <T2>
  */
 public class Pair<T1,T2> {
-    protected T1 first; 
-    protected T2 second; 
+    protected T1 first;
+    protected T2 second;
 
     public Pair(T1 first, T2 second) {
         this.first = first;
         this.second = second;
     }
-    
+
     public Pair() {
     }
 
@@ -50,7 +52,7 @@ public class Pair<T1,T2> {
 
     public void setSecond(T2 second) {
         this.second = second;
-    }    
+    }
 
     @Override
     public int hashCode() {
@@ -72,16 +74,13 @@ public class Pair<T1,T2> {
         if (!Objects.equals(this.first, other.first)) {
             return false;
         }
-        if (!Objects.equals(this.second, other.second)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.second, other.second);
     }
 
     @Override
     public String toString() {
-        return "(" + first + ", " + second + ')';
+        return "<" + first + ", " + second + '>';
     }
-    
-    
+
+
 }
