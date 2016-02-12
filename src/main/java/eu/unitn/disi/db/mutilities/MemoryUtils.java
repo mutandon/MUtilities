@@ -15,32 +15,34 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package eu.unitn.disi.db.command.util;
+package eu.unitn.disi.db.mutilities;
 
 import static java.lang.Runtime.getRuntime;
 
 /**
  * Returns the amount of free memory in order to prevent OutOfMemoryErrors
+ * 
  * @author Davide Mottin <mottin@disi.unitn.eu>
  */
 public class MemoryUtils {
-    private static final Runtime runtime = getRuntime();
-    
-    private MemoryUtils() {}
-    
-    public static long getUsedMemory() {
-        return runtime.totalMemory() - runtime.freeMemory();
-    }
-    
-    public static long getFreeMemory() {
-        return runtime.freeMemory();
-    }
-    
-    public static long getTotalMemory() {
-        return runtime.totalMemory();
-    }
-    
-    public static long getMaxMemory() {
-        return runtime.maxMemory();
-    }
+	private static final Runtime runtime = getRuntime();
+
+	private MemoryUtils() {
+	}
+
+	public static long getUsedMemory() {
+		return runtime.totalMemory() - runtime.freeMemory();
+	}
+
+	public static long getFreeMemory() {
+		return runtime.freeMemory();
+	}
+
+	public static long getTotalMemory() {
+		return runtime.totalMemory();
+	}
+
+	public static long getMaxMemory() {
+		return runtime.maxMemory();
+	}
 }
