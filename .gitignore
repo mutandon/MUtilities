@@ -4,3 +4,4 @@
 nb-configuration.xml
 
 dependency-reduced-pom.xml
+/target/
