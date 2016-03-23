@@ -28,6 +28,7 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.io.InvalidClassException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +46,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import sun.font.EAttribute;
 
 /**
  * This is a utility class with fast methods to access files, split strings and
@@ -316,7 +317,7 @@ public final class CollectionUtilities {
 
         @Override
         public Void call() throws Exception {
-            Arrays.sort(src, from, to > src.length? src.length : to, comparator);
+            Arrays.sort(src, from, to > src.length ? src.length : to, comparator);
             return null;
         }
     }
@@ -324,14 +325,14 @@ public final class CollectionUtilities {
     private static final class MergeTask implements Callable<Void> {
 
         private final long[][] src;
-        private final long[][] dest; 
+        private final long[][] dest;
         private final int from1, to1;
         private final int from2, to2;
         private final Comparator<? super long[]> comparator;
 
         public MergeTask(long[][] src, long[][] dest, int from1, int to1, int from2, int to2, Comparator<? super long[]> comparator) {
             this.src = src;
-            this.dest = dest; 
+            this.dest = dest;
             this.from1 = from1;
             this.to1 = to1;
             this.from2 = from2;
@@ -341,24 +342,25 @@ public final class CollectionUtilities {
 
         @Override
         public Void call() throws Exception {
-            int destLow = from1 < from2? from1 : from2; 
-            int destHigh = to1 > to2? to1 : to2; 
-            
-            for (int i = destLow, p = from1, q = from2; i < destHigh ; i++) {
+            int destLow = from1 < from2 ? from1 : from2;
+            int destHigh = to1 > to2 ? to1 : to2;
+
+            for (int i = destLow, p = from1, q = from2; i < destHigh; i++) {
                 if (q >= to2 || p < to1 && comparator.compare(src[p], src[q]) <= 0) {
                     dest[i] = src[p++];
                 } else {
                     dest[i] = src[q++];
                 }
             }
-            return null; 
+            return null;
         }
     }
-    
+
     private static final class CopyTask implements Callable<Void> {
-        private final long[][] src; 
-        private final long[][] dest; 
-        private final int from, to; 
+
+        private final long[][] src;
+        private final long[][] dest;
+        private final int from, to;
 
         public CopyTask(long[][] src, long[][] dest, int from, int to) {
             this.src = src;
@@ -366,57 +368,58 @@ public final class CollectionUtilities {
             this.from = from;
             this.to = to;
         }
-        
+
         @Override
         public Void call() throws Exception {
             System.arraycopy(src, from, dest, from, to - from);
-            return null; 
+            return null;
         }
     }
+
     /**
      * Sort a bidimensional array using a parallelized version of merge sort
      *
      * @param table The bidimensional array to be sorted
      * @param numThreads The number of threads to be created
+     * @return
      * @throws java.lang.InterruptedException
      * @throws java.util.concurrent.ExecutionException
      */
-    public static long[][] parallelBinaryTableSort(long[][] table, int numThreads) 
-            throws InterruptedException, ExecutionException, IllegalArgumentException 
-    {
+    public static long[][] parallelBinaryTableSort(long[][] table, int numThreads)
+            throws InterruptedException, ExecutionException, IllegalArgumentException {
         int chunkSize = (int) Math.round(table.length / (double) numThreads + 0.5);
         List<Future<Void>> tasks = new ArrayList<>();
-        int threads = numThreads, lastThreads; 
+        int threads = numThreads, lastThreads;
         int rest = 0, offset, start;
-        int multiplier; 
+        int multiplier;
         long[][] dest = new long[table.length][], tmp, src;
         ExecutorService pool = Executors.newFixedThreadPool(numThreads);
         TableComparator comparator = new TableComparator();
-        int i; 
-        
+        int i;
+
         try {
             //SORT
             for (i = 0; i < threads && i * chunkSize < table.length; i++) {
                 tasks.add(pool.submit(new SortTask(table, i * chunkSize, (i + 1) * chunkSize, comparator)));
             }
-            numThreads = threads = i; 
+            numThreads = threads = i;
             //Check completion
-            for (Future<Void> task: tasks) {
+            for (Future<Void> task : tasks) {
                 task.get();
             }
             //MERGE                
-            src = table; 
+            src = table;
             tasks.clear();
-            multiplier = 1; 
-            lastThreads = threads; 
-            while(threads > 0) {
-                threads = threads >>> 1;
+            multiplier = 1;
+            lastThreads = threads;
+            while (threads > 0) {
+                threads >>>= 1;
 
-                offset = chunkSize * multiplier; 
+                offset = chunkSize * multiplier;
                 start = 0;
                 for (i = 0; i < threads + rest; i++) {
-                    tasks.add(pool.submit(new MergeTask(src, dest, 
-                            start * offset, (start + 1) * offset,  //First chunk limits
+                    tasks.add(pool.submit(new MergeTask(src, dest,
+                            start * offset, (start + 1) * offset, //First chunk limits
                             (start + 1) * offset, (start + 2) * offset > table.length ? table.length : (start + 2) * offset, //Second chunk limits
                             comparator)));
                     start += 2;
@@ -424,36 +427,36 @@ public final class CollectionUtilities {
                 if (start * offset < table.length) {
                     tasks.add(pool.submit(new CopyTask(src, dest, start * offset, table.length)));
                 }
-                for (Future<Void> task: tasks) {
+                for (Future<Void> task : tasks) {
                     task.get();
                 }
                 tasks.clear();
                 //swap
-                tmp = src; 
-                src = dest; 
-                dest = tmp; 
+                tmp = src;
+                src = dest;
+                dest = tmp;
                 //update rest
-                rest = lastThreads % 2; 
-                lastThreads = threads; 
-                multiplier = multiplier << 1;  
+                rest = lastThreads % 2;
+                lastThreads = threads;
+                multiplier <<= 1;
             }
             //COPY (if needed)
             if (src != table) {
                 System.out.println("warn: dest != table");
                 for (i = 0; i < numThreads; i++) {
-                    offset = (i + 1) * chunkSize; 
-                    tasks.add(pool.submit(new CopyTask(src, table, i * chunkSize, offset > table.length? table.length: offset)));
+                    offset = (i + 1) * chunkSize;
+                    tasks.add(pool.submit(new CopyTask(src, table, i * chunkSize, offset > table.length ? table.length : offset)));
                 }
-                for (Future<Void> task: tasks) {
+                for (Future<Void> task : tasks) {
                     task.get();
                 }
             }
-        } catch (InterruptedException | ExecutionException ex ){
+        } catch (InterruptedException | ExecutionException ex) {
             throw ex;
         } finally {
             pool.shutdown();
         }
-        return dest; 
+        return dest;
     }
 
     public static int binaryTableSearch(long[][] table, long vertex) {
@@ -603,7 +606,7 @@ public final class CollectionUtilities {
                     }
                     try {
                         map.put(keyConstructor.newInstance(splittedLine[0]), valueConstructor.newInstance(splittedLine[1]));
-                    } catch (Exception ex) {
+                    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                         throw new ParseException("Cannot convert line %d into classes %s and %s", ex, lineNo, keyCastType.getCanonicalName());
                     }
                 }
@@ -612,4 +615,23 @@ public final class CollectionUtilities {
             throw new InvalidClassException(String.format("The input class %s or %s cannot be parsed since it does not contain a constructor that takes in input a String", keyCastType.getCanonicalName(), valueCastType.getCanonicalName()));
         }
     }
+
+    public static int[] convertListIntegers(List<Integer> integers) {
+        int[] ret = new int[integers.size()];
+        Iterator<Integer> iterator = integers.iterator();
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = iterator.next();
+        }
+        return ret;
+    }
+    
+    public static long[] convertListLongs(List<Long> longs) {
+        long[] ret = new long[longs.size()];
+        Iterator<Long> iterator = longs.iterator();
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = iterator.next();
+        }
+        return ret;
+    }
+
 }

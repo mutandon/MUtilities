@@ -80,7 +80,7 @@ public class StopWatch {
 
     /**
      * Creates a stopwatch measuring the CPU type with  a list of thread IDs
-     * @param tt
+     * @param ids
      */
     public StopWatch(long ids[]) {
         this(CPU);
@@ -145,10 +145,11 @@ public class StopWatch {
         }
 
         if (running) {
-            elapsed = ((getTime() - startTime));
-        } else {
-            elapsed = ((stopTime - startTime));
+            stopTime = getTime();
         }
+        
+        elapsed = ((stopTime - startTime));
+        
         return divisor == 1L ? elapsed : elapsed/divisor;
 
     }
