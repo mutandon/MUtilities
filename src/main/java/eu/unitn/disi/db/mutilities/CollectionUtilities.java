@@ -552,14 +552,14 @@ public final class CollectionUtilities {
             fileReader = new BufferedReader(new FileReader(file));
             while ((line = fileReader.readLine()) != null) {
                 lineNo++;
-                if (!"".equals(line.trim())) {
+                if (!line.trim().isEmpty()) {
                     collection.add(numConstructor.newInstance(line));
                 }
             }
         } catch (NoSuchMethodException ex) {
             throw new InvalidClassException(String.format("The input class %s cannot be parsed since it does not contain a constructor that takes in input a String", castType.getCanonicalName()));
-        } catch (Exception ex) {
-            throw new ParseException("Cannot convert line %d into class %s", ex, lineNo, castType.getCanonicalName());
+        } catch (SecurityException | IOException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            throw new ParseException("Cannot convert line %s into class %s", ex, lineNo, castType.getCanonicalName());
         }
     }
 
