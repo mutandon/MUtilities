@@ -26,6 +26,8 @@ import java.util.Formatter;
  * @author Davide Mottin <mottin@disi.unitn.eu>
  */
 public abstract class FormattedException extends Exception {
+
+    private static final long serialVersionUID = 1L;
     
     public FormattedException(Throwable cause) {
         super(cause);

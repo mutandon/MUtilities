@@ -21,6 +21,7 @@ import eu.unitn.disi.db.mutilities.exceptions.ParseException;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.Closeable;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -542,6 +543,11 @@ public final class CollectionUtilities {
         if (collection == null || file == null || castType == null) {
             throw new NullPointerException("Input cannot be null");
         }
+        File reader = new File(file);
+        if(!reader.exists()|| !reader.canRead() ) {
+           throw new ParseException("Cannot read file %s", file); 
+        }
+        
         Constructor<T> numConstructor;
         BufferedReader fileReader;
         String line;
@@ -549,13 +555,14 @@ public final class CollectionUtilities {
 
         try {
             numConstructor = castType.getConstructor(String.class);
-            fileReader = new BufferedReader(new FileReader(file));
+            fileReader = new BufferedReader(new FileReader(reader));
             while ((line = fileReader.readLine()) != null) {
                 lineNo++;
                 if (!line.trim().isEmpty()) {
                     collection.add(numConstructor.newInstance(line));
                 }
             }
+            
         } catch (NoSuchMethodException ex) {
             throw new InvalidClassException(String.format("The input class %s cannot be parsed since it does not contain a constructor that takes in input a String", castType.getCanonicalName()));
         } catch (SecurityException | IOException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {

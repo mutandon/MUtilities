@@ -22,16 +22,18 @@ package eu.unitn.disi.db.mutilities.exceptions;
  * @author Davide Mottin <mottin@disi.unitn.eu>
  */
 public class ParseException extends GenericException { 
+
+    private static final long serialVersionUID = 1L;
     
     public ParseException(Throwable cause) {
         super(cause);
     }
 
     public ParseException(String message, Throwable cause, Object... params) {
-        super(message, cause);
+        super(message, cause, params);
     }
 
     public ParseException(String message, Object... params) {
-        super(message);
+        super(message, params);
     }
 }
