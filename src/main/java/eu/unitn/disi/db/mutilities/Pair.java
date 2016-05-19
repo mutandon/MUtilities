@@ -70,11 +70,9 @@ public class Pair<T1,T2> {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final Pair<?, ?> other = (Pair<?, ?>) obj;
-        if (!Objects.equals(this.first, other.first)) {
-            return false;
-        }
-        return Objects.equals(this.second, other.second);
+        final Pair<?, ?> other = (Pair<?, ?>) obj; 
+        
+        return Objects.equals(this.first, other.first) && Objects.equals(this.second, other.second);
     }
 
     @Override
