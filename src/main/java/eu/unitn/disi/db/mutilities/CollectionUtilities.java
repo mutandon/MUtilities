@@ -40,6 +40,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -639,6 +640,36 @@ public final class CollectionUtilities {
             ret[i] = iterator.next();
         }
         return ret;
+    }
+    
+    
+    /**
+     * 
+     * @param <T> Type
+     * @param lst A sorted list of values to de duplicate
+     * @return a list of values without duplicates
+     */
+    public static <T> List<T> uniq(List<T> lst){
+        ArrayList<T> list = new ArrayList<>(lst.size());
+        T last = null;
+        for (T t : lst) {
+            if(!Objects.equals(last, t)){
+                list.add(t);
+                last = t;
+            }
+        }
+        return list;
+    }
+    
+    
+    /**
+     * 
+     * @param <T>
+     * @param c the collection 
+     * @return the first element in no particular order
+     */
+    public static <T> T get(Collection<T> c){
+        return c.iterator().next();
     }
 
 }
