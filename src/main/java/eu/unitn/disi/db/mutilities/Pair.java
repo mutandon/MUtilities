@@ -18,6 +18,7 @@
 
 package eu.unitn.disi.db.mutilities;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -26,7 +27,9 @@ import java.util.Objects;
  * @param <T1>
  * @param <T2>
  */
-public class Pair<T1,T2> {
+public class Pair<T1,T2> implements Serializable{
+
+    private static final long serialVersionUID = 1L;
     protected T1 first;
     protected T2 second;
 

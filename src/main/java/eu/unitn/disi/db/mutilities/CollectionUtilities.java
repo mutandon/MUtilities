@@ -545,10 +545,10 @@ public final class CollectionUtilities {
             throw new NullPointerException("Input cannot be null");
         }
         File reader = new File(file);
-        if(!reader.exists()|| !reader.canRead() ) {
-           throw new ParseException("Cannot read file %s", file); 
+        if (!reader.exists() || !reader.canRead()) {
+            throw new ParseException("Cannot read file %s", file);
         }
-        
+
         Constructor<T> numConstructor;
         BufferedReader fileReader;
         String line;
@@ -563,7 +563,7 @@ public final class CollectionUtilities {
                     collection.add(numConstructor.newInstance(line));
                 }
             }
-            
+
         } catch (NoSuchMethodException ex) {
             throw new InvalidClassException(String.format("The input class %s cannot be parsed since it does not contain a constructor that takes in input a String", castType.getCanonicalName()));
         } catch (SecurityException | IOException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
@@ -632,7 +632,7 @@ public final class CollectionUtilities {
         }
         return ret;
     }
-    
+
     public static long[] convertListLongs(List<Long> longs) {
         long[] ret = new long[longs.size()];
         Iterator<Long> iterator = longs.iterator();
@@ -641,35 +641,45 @@ public final class CollectionUtilities {
         }
         return ret;
     }
-    
-    
+
     /**
-     * 
+     *
      * @param <T> Type
      * @param lst A sorted list of values to de duplicate
      * @return a list of values without duplicates
      */
-    public static <T> List<T> uniq(List<T> lst){
+    public static <T> List<T> uniq(List<T> lst) {
         ArrayList<T> list = new ArrayList<>(lst.size());
         T last = null;
         for (T t : lst) {
-            if(!Objects.equals(last, t)){
+            if (!Objects.equals(last, t)) {
                 list.add(t);
                 last = t;
             }
         }
         return list;
     }
-    
-    
+
+    /**
+     *
+     * @param <T>
+     * @param c the collection
+     * @return the first element in no particular order
+     */
+    public static <T> T get(Collection<T> c) {
+        return c.iterator().next();
+    }
+
     /**
      * 
      * @param <T>
-     * @param c the collection 
-     * @return the first element in no particular order
+     * @param c
+     * @return a sorted list version of the passed collection
      */
-    public static <T> T get(Collection<T> c){
-        return c.iterator().next();
+    public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
+        List<T> list = new ArrayList<>(c);
+        java.util.Collections.sort(list);
+        return list;
     }
 
 }
