@@ -5,6 +5,10 @@
  */
 package eu.unitn.disi.db.mutilities;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Utilities for Numbers
  *
@@ -27,7 +31,7 @@ public class Numbers {
     }
 
     /**
-     * Given two ints, reconstruct a long with the concatenation fo the bits
+     * Given two ints, reconstruct a long with the concatenation of the bits
      * @param left higher value bits
      * @param right lower value bits
      * @return long concatenation of the two ints
@@ -36,4 +40,45 @@ public class Numbers {
         return (long) left << 32 | right & 0xFFFFFFFFL;
         
     }
+    
+    
+    /**
+     * 
+     * @param m
+     * @return the median as int
+     */
+    public  static double  median(List<Double> m) {
+        if(m.size() < 2){
+            return m.get(0);
+        }
+        int middle = m.size()/2;
+        Collections.sort(m);
+        if (m.size()%2 == 1) {
+            return m.get(middle);
+        }
+        return (m.get(middle-1) + m.get(middle)) / 2.0;        
+        
+    }
+       
+    
+    
+    
+    /**
+     * 
+     * @param N
+     * @param K
+     * @return number of combinations of from N choose K
+     */ 
+    public static long binomial( final long N, final int K){
+        long nCk = 1;
+        for (int k = 0; k < K; k++) {            
+            nCk = nCk * (N-k) / (k+1);
+        }
+        return nCk;
+    }
+    
+    
+    
+    
+    
 }

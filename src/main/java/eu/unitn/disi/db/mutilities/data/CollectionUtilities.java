@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package eu.unitn.disi.db.mutilities;
+package eu.unitn.disi.db.mutilities.data;
 
 import eu.unitn.disi.db.mutilities.exceptions.ParseException;
 import java.io.BufferedInputStream;
@@ -36,6 +36,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -666,8 +667,8 @@ public final class CollectionUtilities {
      * @param c the collection
      * @return the first element in no particular order
      */
-    public static <T> T get(Collection<T> c) {
-        return c.iterator().next();
+    public static <T> T getOne(Collection<T> c) {
+        return c.iterator().hasNext() ? c.iterator().next() : null;
     }
 
     /**
@@ -676,10 +677,30 @@ public final class CollectionUtilities {
      * @param c
      * @return a sorted list version of the passed collection
      */
-    public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
-        List<T> list = new ArrayList<>(c);
-        java.util.Collections.sort(list);
+    public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {        
+        List<T> list =  new ArrayList<>(c);
+        Collections.sort(list);
         return list;
     }
+    
+    
+    public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element){
+        return binarySearchOf(list, element, 0,list.size());
+    }
+    
+    public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element, int start, int end){
+        int mid =(start+end)/2;  
+        if(start > end || mid >= end  ){
+            return -1;
+        } if ( list.get(mid).compareTo(element) == 0){
+            return mid;
+        } else if(list.get(mid).compareTo(element) < 0){
+            return binarySearchOf(list, element, mid+1, end);
+        } else {
+            return binarySearchOf(list, element, start, mid);
+        }
+    }
+    
+    
 
 }

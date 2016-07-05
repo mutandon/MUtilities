@@ -16,29 +16,31 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package eu.unitn.disi.db.mutilities;
+package eu.unitn.disi.db.mutilities.data;
 
+import eu.unitn.disi.db.mutilities.Triple;
 import java.util.Comparator;
 
 /**
- * Builds a pair comparator on the second member of the pair. 
+ * Comparator for the first member of a pair
  * @author Davide Mottin <mottin@disi.unitn.eu>
+ * @param <T>
  */
-public class PairSecondComparator implements Comparator<Pair<?,? extends Comparable>> {
+public class TripleFirstComparator<T extends Comparable<T>> implements Comparator<Triple<T,?,?>> {
     private final boolean asc; 
 
-    public PairSecondComparator(boolean asc) {
+    public TripleFirstComparator(boolean asc) {
         this.asc = asc;
     }
 
-    public PairSecondComparator() {
+    public TripleFirstComparator() {
         this.asc = true; 
     }
     
     
-    @Override
-    public int compare(Pair<?, ? extends Comparable> o1, Pair<?, ? extends Comparable> o2) {
-        return asc? o1.getSecond().compareTo(o2.getSecond()) : -o1.getSecond().compareTo(o2.getSecond());
-    }
 
+    @Override
+    public int compare(Triple<T, ?,?> o1, Triple<T, ?,?> o2) {
+        return asc? o1.getFirst().compareTo(o2.getFirst()) : -o1.getFirst().compareTo(o2.getFirst());
+    }
 }

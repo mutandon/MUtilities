@@ -17,8 +17,6 @@
  */
 package eu.unitn.disi.db.mutilities;
 
-import static eu.unitn.disi.db.mutilities.StopWatch.TimeType.APPLICATION;
-import static eu.unitn.disi.db.mutilities.StopWatch.TimeType.CPU;
 import static eu.unitn.disi.db.mutilities.Time.getSystemTime;
 import static eu.unitn.disi.db.mutilities.Time.getUserTime;
 import static eu.unitn.disi.db.mutilities.Time.getCpuTime;
@@ -44,7 +42,7 @@ public class StopWatch {
     /**
      * Represents the time type
      */
-    public enum TimeType {
+    public static enum TimeType {
         /**
          * CPU time is the effective time spent by the process  (USER + SYSTEM time)
          */
@@ -67,7 +65,7 @@ public class StopWatch {
      * Creates a stopwatch with TimeType.APPLICATION
      */
     public StopWatch() {
-        this(APPLICATION);
+        this(TimeType.APPLICATION);
     }
 
     /**
@@ -83,7 +81,7 @@ public class StopWatch {
      * @param ids
      */
     public StopWatch(long ids[]) {
-        this(CPU);
+        this(TimeType.CPU);
         this.ids = ids;
     }
 

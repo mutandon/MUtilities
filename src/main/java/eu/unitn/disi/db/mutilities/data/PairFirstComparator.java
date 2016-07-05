@@ -16,15 +16,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package eu.unitn.disi.db.mutilities;
+package eu.unitn.disi.db.mutilities.data;
 
+import eu.unitn.disi.db.mutilities.Pair;
 import java.util.Comparator;
 
 /**
  * Comparator for the first member of a pair
  * @author Davide Mottin <mottin@disi.unitn.eu>
+ * @param <T>
  */
-public class PairFirstComparator implements Comparator<Pair<? extends Comparable,?>> {
+public class PairFirstComparator<T extends Comparable<T>> implements Comparator<Pair<T,?>> {
     private final boolean asc; 
 
     public PairFirstComparator(boolean asc) {
@@ -36,8 +38,9 @@ public class PairFirstComparator implements Comparator<Pair<? extends Comparable
     }
     
     
+
     @Override
-    public int compare(Pair<? extends Comparable, ?> o1, Pair<? extends Comparable, ?> o2) {
+    public int compare(Pair<T, ?> o1, Pair<T, ?> o2) {
         return asc? o1.getFirst().compareTo(o2.getFirst()) : -o1.getFirst().compareTo(o2.getFirst());
     }
 }
