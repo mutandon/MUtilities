@@ -672,35 +672,40 @@ public final class CollectionUtilities {
     }
 
     /**
-     * 
+     *
      * @param <T>
      * @param c
      * @return a sorted list version of the passed collection
      */
-    public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {        
-        List<T> list =  new ArrayList<>(c);
+    public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
+        List<T> list = new ArrayList<>(c);
         Collections.sort(list);
         return list;
     }
-    
-    
-    public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element){
-        return binarySearchOf(list, element, 0,list.size());
+
+    public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element, Comparator<? super T> c) {
+        return binarySearchOf(list, element, 0, list.size(), c);
     }
-    
-    public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element, int start, int end){
-        int mid =(start+end)/2;  
-        if(start > end || mid >= end  ){
+
+    public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element) {
+        return binarySearchOf(list, element, 0, list.size(), null);
+    }
+
+    public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element, int start, int end, Comparator<? super T> c) {
+        int mid = (start + end) / 2;
+        if (start > end || mid >= end) {
             return -1;
-        } if ( list.get(mid).compareTo(element) == 0){
+        }
+
+        int compared = c == null ? list.get(mid).compareTo(element) : c.compare(list.get(mid), element);
+
+        if (compared == 0) {
             return mid;
-        } else if(list.get(mid).compareTo(element) < 0){
-            return binarySearchOf(list, element, mid+1, end);
+        } else if (compared < 0) {
+            return binarySearchOf(list, element, mid + 1, end, c);
         } else {
-            return binarySearchOf(list, element, start, mid);
+            return binarySearchOf(list, element, start, mid, c);
         }
     }
-    
-    
 
 }
