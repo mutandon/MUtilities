@@ -18,26 +18,19 @@
 package eu.unitn.disi.db.mutilities.data;
 
 import eu.unitn.disi.db.mutilities.exceptions.ParseException;
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.Flushable;
 import java.io.IOException;
 import java.io.InvalidClassException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +41,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This is a utility class with fast methods to access files, split strings and
@@ -60,40 +52,11 @@ public final class CollectionUtilities {
 
     public static final int PAGE_SIZE = 1024;
 
-    private static class TableComparator implements Comparator<long[]> {
-
-        @Override
-        public int compare(long[] o1, long[] o2) {
-            if (o1 == null) {
-                return -1;
-            }
-            if (o2 == null) {
-                return 1;
-            }
-            if (o1[0] > o2[0]) {
-                return 1;
-            }
-            if (o1[0] < o2[0]) {
-                return -1;
-            }
-            return 0;
-        }
-    }
-
+   
     private CollectionUtilities() {
     }
 
-    public static <A, B> String mapToString(Map<A, B> m) {
-        StringBuilder sb = new StringBuilder();
-        Set<A> keys = m.keySet();
-        sb.append("{");
-        for (A key : keys) {
-            sb.append("(").append(key).append(",").append(m.get(key)).append(")");
-        }
-        sb.append("}");
-        return sb.toString();
-    }
-
+   
     public static <T> int intersectionSize(Set<T> checkCollection, Collection<T> inputCollection) {
         int count = 0;
         for (T t : inputCollection) {
@@ -103,7 +66,40 @@ public final class CollectionUtilities {
         }
         return count;
     }
+       
+    
 
+    public static <T> int unionSize(Set<T> s1, Set<T> s2) {
+        Set<T> min, max;
+        if(s1.size() < s2.size()){
+            min = s1;
+            max =s2;
+        }else {
+            min = s2;
+            max =s1;            
+        }
+        
+        int count = max.size();
+        for (T t : min) {
+            if (!max.contains(t)) {
+                count++;
+            }
+        }
+        return count;
+    }
+    
+    
+    public static <T> int differenceSize(Set<T> set1, Set<T> set2) {
+        int count = set1.size();
+        for (T t : set1) {
+            if (set2.contains(t)) {
+                count--;
+            }
+        }
+        return count;
+    }
+
+    
     public static <T> boolean intersectionNotEmpty(Set<T> checkCollection, Collection<T> inputCollection) {
         for (T t : inputCollection) {
             if (checkCollection.contains(t)) {
@@ -112,147 +108,72 @@ public final class CollectionUtilities {
         }
         return false;
     }
-
-    public static void closeAll(Closeable... cls) {
-        for (Closeable c : cls) {
-            close(c);
-        }
-    }
-
-    public static void close(Closeable c) {
-        if (c != null) {
-            try {
-                c.close();
-            } catch (IOException ex) {
+    
+    public static <T> boolean intersectionNotEmpty(Collection<T> checkCollection, Collection<T> inputCollection) {
+        for (T t : inputCollection) {
+            if (checkCollection.contains(t)) {
+                return true;
             }
         }
+        return false;
     }
-
-    public static void flushAll(Flushable... fs) throws IOException {
-        for (Flushable f : fs) {
-            flush(f);
+        
+    
+    public static <T> Set<T> intersect(Set<T> set1, Set<T> set2) {
+        Set<T> a;
+        Set<T> b;
+        
+        if (set1.size() <= set2.size()) {
+            a = set1;
+            b = set2;
+        } else {
+            a = set2;
+            b = set1;
         }
-    }
-
-    public static void flush(Flushable f) throws IOException {
-        if (f != null) {
-            f.flush();
-        }
-    }
-
-    public static void closeConnection(Connection conn) {
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (Exception ex) {
+        Set<T> intersection = new HashSet<>(a.size()*2/3);
+        for (T e : a) {
+            if (b.contains(e)) {
+                intersection.add(e);
             }
         }
+        return intersection;
     }
 
-    public static void closeStatement(Statement stmt) {
-        if (stmt != null) {
-            try {
-                stmt.close();
-            } catch (Exception ex) {
+    public static <T> List<T> intersect(List<T> list1, Set<T> set2) {
+        List<T> intersection = new ArrayList<>(set2.size());
+
+        for (T e : list1) {
+            if (set2.contains(e)) {
+                intersection.add(e);
             }
         }
+        return intersection;
     }
 
-    public static void closeAllStatements(Statement... stmts) {
-        for (Statement s : stmts) {
-            closeStatement(s);
+    public static <T> List<T> intersect(List<T> list1, List<T> list2) {
+        List<T> a;
+        List<T> b;
+        List<T> intersection;
+        if (list1.size() <= list2.size()) {
+            a = list1;
+            b = list2;
+            intersection = new ArrayList<>(list1.size());
+        } else {
+            a = list2;
+            b = list1;
+            intersection = new ArrayList<>(list2.size());
         }
-    }
-
-    public static void closeResultSet(ResultSet rs) {
-        if (rs != null) {
-            try {
-                rs.close();
-            } catch (Exception ex) {
+        for (T e : a) {
+            if (b.contains(e)) {
+                intersection.add(e);
             }
         }
+        return intersection;
     }
 
-    /**
-     * Count the number of lines in a file in a very fast way. </br>
-     * <i>This method may have a problem with non-ascii files</i>
-     *
-     * @param file The input file for which you want to know the number of lines
-     * @return The number of lines
-     * @throws IOException If an error occurs while reading the file
-     */
-    public static int countLines(String file) throws IOException {
-        final byte nl = 0xA;
-        BufferedInputStream in = null;
-        int count = 0;
-        byte[] buf = new byte[1024];
-        int len, i;
-
-        try {
-            in = new BufferedInputStream(new FileInputStream(file));
-            while ((len = in.read(buf)) != -1) {
-                for (i = 0; i < len; i++) {
-                    if (buf[i] == nl) {
-                        count++;
-                    }
-                }
-            }
-        } catch (IOException ex) {
-            throw new IOException(ex);
-        } finally {
-            close(in);
-        }
-        return count;
-    }
-
-    /**
-     * Method to fast Split a string using a character as separator
-     *
-     * @param line
-     * @param split
-     * @param numberOfChunks
-     * @return
-     */
-    public static String[] fastSplit(String line, char split, int numberOfChunks) {
-        String[] temp = new String[numberOfChunks + 1];
-        String chunk = "";
-        int wordCount = 0;
-        int i = 0;
-        int j = line.indexOf(split);  // First substring
-        while (j >= 0) {
-            chunk = line.substring(i, j);
-            if (chunk.trim().length() > 0) {
-                temp[wordCount++] = chunk;
-            }
-            i = j + 1;
-            j = line.indexOf(split, i);   // Rest of substrings
-        }
-        temp[wordCount++] = line.substring(i); // Last substring
-        String[] result = new String[wordCount];
-        System.arraycopy(temp, 0, result, 0, wordCount);
-        return result;
-    }
-
-    /**
-     * Read from file using optimized functions to get data as fast as possible
-     *
-     * @param file The file to be loaded.
-     * @return
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    public static String readFile(String file) throws IOException {
-        BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
-        ByteBuffer buffer = new ByteBuffer();
-        byte[] buf = new byte[PAGE_SIZE];
-        int len;
-        while ((len = in.read(buf)) != -1) {
-            buffer.put(buf, len);
-        }
-        in.close();
-        return new String(buffer.buffer, 0, buffer.write);
-    }
-
+    
+    
+    
     static class ByteBuffer {
 
         public byte[] buffer = new byte[256];
@@ -270,27 +191,6 @@ public final class CollectionUtilities {
                 byte[] temp = new byte[req * 2];
                 System.arraycopy(buffer, 0, temp, 0, write);
                 buffer = temp;
-            }
-        }
-    }
-
-    public static void shutdownAndAwaitTermination(ExecutorService pool) {
-        if (pool != null) {
-            pool.shutdown(); // Disable new tasks from being submitted
-            try {
-                // Wait a while for existing tasks to terminate
-                if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
-                    pool.shutdownNow(); // Cancel currently executing tasks
-                    // Wait a while for tasks to respond to being cancelled
-                    if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
-                        throw new InterruptedException("Pool did not terminate");
-                    }
-                }
-            } catch (InterruptedException ie) {
-                // (Re-)Cancel if current thread also interrupted
-                pool.shutdownNow();
-                // Preserve interrupt status
-                Thread.currentThread().interrupt();
             }
         }
     }
@@ -379,6 +279,28 @@ public final class CollectionUtilities {
         }
     }
 
+    
+     private static class TableComparator implements Comparator<long[]> {
+
+        @Override
+        public int compare(long[] o1, long[] o2) {
+            if (o1 == null) {
+                return -1;
+            }
+            if (o2 == null) {
+                return 1;
+            }
+            if (o1[0] > o2[0]) {
+                return 1;
+            }
+            if (o1[0] < o2[0]) {
+                return -1;
+            }
+            return 0;
+        }
+    }
+
+    
     /**
      * Sort a bidimensional array using a parallelized version of merge sort
      *
@@ -489,15 +411,7 @@ public final class CollectionUtilities {
         return -(low + 1);  // key not found.
     }
 
-    public static <K, V> boolean emptyIntersection(Map<K, V> map) {
-        Set<K> keys = map.keySet();
-        for (K k : keys) {
-            if (k.equals(map.get(k))) {
-                return false;
-            }
-        }
-        return true;
-    }
+  
 
     /**
      * Read a file into a collection of strings
@@ -624,6 +538,18 @@ public final class CollectionUtilities {
             throw new InvalidClassException(String.format("The input class %s or %s cannot be parsed since it does not contain a constructor that takes in input a String", keyCastType.getCanonicalName(), valueCastType.getCanonicalName()));
         }
     }
+            
+    public static <A, B> String mapToString(Map<A, B> m) {
+        StringBuilder sb = new StringBuilder();
+        Set<A> keys = m.keySet();
+        sb.append("{");
+        for (A key : keys) {
+            sb.append("(").append(key).append(",").append(m.get(key)).append(")");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
 
     public static int[] convertListIntegers(List<Integer> integers) {
         int[] ret = new int[integers.size()];
@@ -675,7 +601,7 @@ public final class CollectionUtilities {
      *
      * @param <T>
      * @param c
-     * @return a sorted list version of the passed collection
+     * @return a sorted list copy of the passed collection
      */
     public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
         List<T> list = new ArrayList<>(c);
@@ -683,14 +609,38 @@ public final class CollectionUtilities {
         return list;
     }
 
+    /**
+     * 
+     * @param <T>
+     * @param list
+     * @param element
+     * @param c
+     * @return the position of the element if present, -1 otherwise
+     */
     public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element, Comparator<? super T> c) {
         return binarySearchOf(list, element, 0, list.size(), c);
     }
-
+    /**
+     * 
+     * @param <T>
+     * @param list
+     * @param element
+     * @return the position of the element if present, -1 otherwise
+     */
     public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element) {
         return binarySearchOf(list, element, 0, list.size(), null);
     }
 
+    /**
+     * 
+     * @param <T>
+     * @param list
+     * @param element
+     * @param start
+     * @param end
+     * @param c
+     * @return the position of the element if present, -1 otherwise
+     */
     public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element, int start, int end, Comparator<? super T> c) {
         int mid = (start + end) / 2;
         if (start > end || mid >= end) {
