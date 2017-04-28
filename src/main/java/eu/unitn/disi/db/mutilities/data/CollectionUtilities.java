@@ -646,9 +646,13 @@ public final class CollectionUtilities {
         if (start > end || mid >= end) {
             return -1;
         }
-
-        int compared = c == null ? list.get(mid).compareTo(element) : c.compare(list.get(mid), element);
-
+        int compared =-1;
+        try {
+         compared = c == null ? list.get(mid).compareTo(element) : c.compare(list.get(mid), element);
+        } catch (Exception e) {            
+            throw new IllegalStateException("Exception while searching for " + element + " from " + start + " to " + end , e);
+        }
+                
         if (compared == 0) {
             return mid;
         } else if (compared < 0) {
