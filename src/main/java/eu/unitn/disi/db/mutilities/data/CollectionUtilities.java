@@ -20,11 +20,13 @@ package eu.unitn.disi.db.mutilities.data;
 import eu.unitn.disi.db.mutilities.exceptions.ParseException;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InvalidClassException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,11 +54,9 @@ public final class CollectionUtilities {
 
     public static final int PAGE_SIZE = 1024;
 
-   
     private CollectionUtilities() {
     }
 
-   
     public static <T> int intersectionSize(Set<T> checkCollection, Collection<T> inputCollection) {
         int count = 0;
         for (T t : inputCollection) {
@@ -66,19 +66,17 @@ public final class CollectionUtilities {
         }
         return count;
     }
-       
-    
 
     public static <T> int unionSize(Set<T> s1, Set<T> s2) {
         Set<T> min, max;
-        if(s1.size() < s2.size()){
+        if (s1.size() < s2.size()) {
             min = s1;
-            max =s2;
-        }else {
+            max = s2;
+        } else {
             min = s2;
-            max =s1;            
+            max = s1;
         }
-        
+
         int count = max.size();
         for (T t : min) {
             if (!max.contains(t)) {
@@ -87,8 +85,7 @@ public final class CollectionUtilities {
         }
         return count;
     }
-    
-    
+
     public static <T> int differenceSize(Set<T> set1, Set<T> set2) {
         int count = set1.size();
         for (T t : set1) {
@@ -99,7 +96,6 @@ public final class CollectionUtilities {
         return count;
     }
 
-    
     public static <T> boolean intersectionNotEmpty(Set<T> checkCollection, Collection<T> inputCollection) {
         for (T t : inputCollection) {
             if (checkCollection.contains(t)) {
@@ -108,7 +104,7 @@ public final class CollectionUtilities {
         }
         return false;
     }
-    
+
     public static <T> boolean intersectionNotEmpty(Collection<T> checkCollection, Collection<T> inputCollection) {
         for (T t : inputCollection) {
             if (checkCollection.contains(t)) {
@@ -117,12 +113,11 @@ public final class CollectionUtilities {
         }
         return false;
     }
-        
-    
+
     public static <T> Set<T> intersect(Set<T> set1, Set<T> set2) {
         Set<T> a;
         Set<T> b;
-        
+
         if (set1.size() <= set2.size()) {
             a = set1;
             b = set2;
@@ -130,7 +125,7 @@ public final class CollectionUtilities {
             a = set2;
             b = set1;
         }
-        Set<T> intersection = new HashSet<>(a.size()*2/3);
+        Set<T> intersection = new HashSet<>(a.size() * 2 / 3);
         for (T e : a) {
             if (b.contains(e)) {
                 intersection.add(e);
@@ -171,9 +166,6 @@ public final class CollectionUtilities {
         return intersection;
     }
 
-    
-    
-    
     static class ByteBuffer {
 
         public byte[] buffer = new byte[256];
@@ -279,8 +271,7 @@ public final class CollectionUtilities {
         }
     }
 
-    
-     private static class TableComparator implements Comparator<long[]> {
+    private static class TableComparator implements Comparator<long[]> {
 
         @Override
         public int compare(long[] o1, long[] o2) {
@@ -300,7 +291,6 @@ public final class CollectionUtilities {
         }
     }
 
-    
     /**
      * Sort a bidimensional array using a parallelized version of merge sort
      *
@@ -411,8 +401,6 @@ public final class CollectionUtilities {
         return -(low + 1);  // key not found.
     }
 
-  
-
     /**
      * Read a file into a collection of strings
      *
@@ -488,7 +476,7 @@ public final class CollectionUtilities {
 
     /**
      * Read a file into a key-value map, the keys and values can be cast to any
-     * arbitrary class
+     * arbitrary NUMERIC class
      *
      * @param <K> The class of the keys
      * @param <V> The class of the values
@@ -538,7 +526,80 @@ public final class CollectionUtilities {
             throw new InvalidClassException(String.format("The input class %s or %s cannot be parsed since it does not contain a constructor that takes in input a String", keyCastType.getCanonicalName(), valueCastType.getCanonicalName()));
         }
     }
-            
+
+    /**
+     * Read a file into a key-value map, the keys can be cast to any arbitrary
+     * NUMERIC class the values will be Strings
+     *
+     * @param <K> The class of the keys
+     * @param file The input file to be stored in a map
+     * @param separator The sepator used to identify fields
+     * @param map The map to be populated
+     * @param keyCastType The class of the keys to be casted
+     * @throws IOException If the file is not readable
+     * @throws NullPointerException If some of the inputs is null
+     * @throws InvalidClassException If the input type does not allow a string
+     * constructor
+     * @throws ParseException If the line is not of the correct type
+     */
+    public static <K extends Number> void
+            readFileIntoMap(String file, String separator, Map<K, String> map, Class<K> keyCastType)
+            throws IOException, NullPointerException, InvalidClassException, ParseException {
+        if (map == null) {
+            throw new NullPointerException("Input MAP cannot be null");
+        } else if (file == null) {
+            throw new NullPointerException("Input FILE cannot be null");
+        } else if (keyCastType == null) {
+            throw new NullPointerException("Input Key Class cannot be null");
+        } else if (separator == null) {
+            throw new NullPointerException("Input Seprator cannot be null");
+        }
+        Constructor<K> keyConstructor;
+        BufferedReader fileReader;
+        String line;
+        String[] splittedLine;
+        int lineNo = 0;
+
+        try {
+            keyConstructor = keyCastType.getConstructor(String.class);
+            File toRead = new File(file);
+            if (!toRead.exists()) {
+                throw new FileNotFoundException(file + " not found!");
+            }
+            if (!toRead.isFile()) {
+                throw new IllegalArgumentException(file + " is not a regular file!");
+            }
+            if (!toRead.canRead()) {
+                throw new IOException(file + " is not readable!");
+            }
+
+            try (BufferedReader br = Files.newBufferedReader(toRead.toPath())) {
+
+                while ((line = br.readLine()) != null) {
+                    lineNo++;
+                    line = line.trim();
+                    if (!line.isEmpty() && line.contains("\t")) {
+                        splittedLine = line.split(separator);
+                        if (splittedLine.length < 2) {
+                            throw new ParseException("Line %d has an invalid format", lineNo);
+                        }
+                        try {
+                            map.put(keyConstructor.newInstance(splittedLine[0]), splittedLine[1]);
+                        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                            throw new ParseException("Cannot convert line %d into classes %s and %s", ex, lineNo, keyCastType.getCanonicalName());
+                        }
+                    }
+                }
+
+            } catch (IOException e) {
+                throw new IOException("Convert to map failed", e);
+            }
+
+        } catch (NoSuchMethodException ex) {
+            throw new InvalidClassException(String.format("The input class %s cannot be parsed since it does not contain a constructor that takes in input a String", keyCastType.getCanonicalName()));
+        }
+    }
+
     public static <A, B> String mapToString(Map<A, B> m) {
         StringBuilder sb = new StringBuilder();
         Set<A> keys = m.keySet();
@@ -549,7 +610,6 @@ public final class CollectionUtilities {
         sb.append("}");
         return sb.toString();
     }
-
 
     public static int[] convertListIntegers(List<Integer> integers) {
         int[] ret = new int[integers.size()];
@@ -610,7 +670,7 @@ public final class CollectionUtilities {
     }
 
     /**
-     * 
+     *
      * @param <T>
      * @param list
      * @param element
@@ -620,8 +680,9 @@ public final class CollectionUtilities {
     public static <T extends Comparable<? super T>> int binarySearchOf(List<T> list, T element, Comparator<? super T> c) {
         return binarySearchOf(list, element, 0, list.size(), c);
     }
+
     /**
-     * 
+     *
      * @param <T>
      * @param list
      * @param element
@@ -632,7 +693,7 @@ public final class CollectionUtilities {
     }
 
     /**
-     * 
+     *
      * @param <T>
      * @param list
      * @param element
@@ -646,13 +707,13 @@ public final class CollectionUtilities {
         if (start > end || mid >= end) {
             return -1;
         }
-        int compared =-1;
+        int compared = -1;
         try {
-         compared = c == null ? list.get(mid).compareTo(element) : c.compare(list.get(mid), element);
-        } catch (Exception e) {            
-            throw new IllegalStateException("Exception while searching for " + element + " from " + start + " to " + end , e);
+            compared = c == null ? list.get(mid).compareTo(element) : c.compare(list.get(mid), element);
+        } catch (Exception e) {
+            throw new IllegalStateException("Exception while searching for " + element + " from " + start + " to " + end, e);
         }
-                
+
         if (compared == 0) {
             return mid;
         } else if (compared < 0) {
@@ -662,4 +723,16 @@ public final class CollectionUtilities {
         }
     }
 
+    
+    public static <K> void normalizeMap(Map<K, Double> map) {
+        Set<K> keys = map.keySet();
+        double sum = 0.0 + map.values().stream().mapToDouble(Double::doubleValue).sum();
+
+        for (K key : keys) {
+            map.put(key, map.get(key)/sum);
+        }
+    }
+
+    
+    
 }
