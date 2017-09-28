@@ -25,6 +25,8 @@ import java.util.PriorityQueue;
  * objects (doing so may result in {@code ClassCastException}).
  *
  * Only the TOP K greatest elements will be kept.
+ * 
+ * E.g, from. { 1.0, 2.0, 3.0, 3.1, 2.1, 1.1 } -> [3.1, 3.0, 2.1]
  *
  * http://stackoverflow.com/questions/7878026/is-there-a-priorityqueue-implementation-with-fixed-capacity-and-custom-comparato
  *
@@ -199,6 +201,9 @@ public class FixedSizePriorityQueue<E> extends AbstractQueue<E> implements Itera
     @Override
     public E poll() {
         return this.queue.poll();
+ 
     }
+    
+    
 
 }
