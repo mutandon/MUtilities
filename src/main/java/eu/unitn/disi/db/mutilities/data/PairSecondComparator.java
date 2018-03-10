@@ -28,10 +28,18 @@ import java.util.Comparator;
 public class PairSecondComparator implements Comparator<Pair<?,? extends Comparable>> {
     private final boolean asc; 
 
+    /**
+     *  A pair comparator on the second member of the pair.  
+     * @param asc if false it is descending order, opposite of normal/natural order for compareTo
+     */
     public PairSecondComparator(boolean asc) {
         this.asc = asc;
     }
 
+    /**
+     * A pair comparator on the second member of the pair.  
+     * Default is ascending order (normal/natural order for compareTo)
+     */
     public PairSecondComparator() {
         this.asc = true; 
     }

@@ -125,7 +125,7 @@ public final class CollectionUtilities {
             a = set2;
             b = set1;
         }
-        Set<T> intersection = new HashSet<>(a.size() * 2 / 3);
+        Set<T> intersection = new HashSet<>(a.size() * 4 / 3);
         for (T e : a) {
             if (b.contains(e)) {
                 intersection.add(e);
