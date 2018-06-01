@@ -85,7 +85,7 @@ public class FixedSizePriorityQueue<E> extends AbstractQueue<E> implements Itera
     /**
      * Adds an element to the queue. If the queue contains {@code maxSize}
      * elements, {@code e} will be compared to the lowest element in the queue
-     * using {@code comparator}. If {@code e} is greater than or equal to the
+     * using {@code comparator} on {@code peek}. If {@code e} is greater than or equal to the
      * lowest element, that element will be removed and {@code e} will be added
      * instead. Otherwise, the queue will not be modified and {@code e} will not
      * be added.
@@ -162,8 +162,11 @@ public class FixedSizePriorityQueue<E> extends AbstractQueue<E> implements Itera
     }
 
     /**
-     * Returns the current element with lowest priority
-     * @return 
+     * Returns the element that has the lowest priority 
+     * This will be candidate for removal if the Queue as reached the maximum size
+     * Natural order is ascending! 
+     * E.g, from. { 1.0, 2.0, 3.0, 3.1, 2.1, 1.1 } -> [1.0]
+     * @return the current element with lowest priority
      */
     @Override
     public E peek() {
@@ -203,7 +206,19 @@ public class FixedSizePriorityQueue<E> extends AbstractQueue<E> implements Itera
         return this.queue.poll();
  
     }
-    
+ 
+    public static void main(String[] args){
+        double[] nums = new double[]{ 1.0, 2.0, 3.0, 3.1, 2.1, 1.1 };
+        FixedSizePriorityQueue<Double> nn  = new FixedSizePriorityQueue<>(4);
+        for(double n : nums){
+            nn.add(n);
+        }
+        
+        for (Double n : nn){
+            System.out.println(n);
+        }
+        
+    }
     
 
 }

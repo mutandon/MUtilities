@@ -114,6 +114,13 @@ public final class CollectionUtilities {
         return false;
     }
 
+    /**
+     * Produce a new set
+     * @param <T>
+     * @param set1
+     * @param set2
+     * @return 
+     */
     public static <T> Set<T> intersect(Set<T> set1, Set<T> set2) {
         Set<T> a;
         Set<T> b;
@@ -133,6 +140,25 @@ public final class CollectionUtilities {
         }
         return intersection;
     }
+    
+    /**
+     * Produce a new set
+     * @param <T>
+     * @param set1
+     * @param set2
+     * @return 
+     */
+    public static <T> Set<T> intersect(Set<T> set1, Collection<T> set2) {        
+        Set<T> intersection = new HashSet<>(set1.size() * 4 / 3);
+        for (T e : set2) {
+            if (set1.contains(e)) {
+                intersection.add(e);
+            }
+        }
+        return intersection;
+    }
+    
+    
 
     public static <T> List<T> intersect(List<T> list1, Set<T> set2) {
         List<T> intersection = new ArrayList<>(set2.size());
