@@ -571,6 +571,29 @@ public final class CollectionUtilities {
     public static <K extends Number> void
             readFileIntoMap(String file, String separator, Map<K, String> map, Class<K> keyCastType)
             throws IOException, NullPointerException, InvalidClassException, ParseException {
+            readFileIntoMap(file,  separator, map, keyCastType, 0,1);
+    }
+
+    /**
+     * Read a file into a key-value map, the keys can be cast to any arbitrary
+     * NUMERIC class the values will be Strings
+     *
+     * @param <K> The class of the keys
+     * @param file The input file to be stored in a map
+     * @param separator The sepator used to identify fields
+     * @param map The map to be populated
+     * @param keyCastType The class of the keys to be casted
+     * @param keyPos position in each line of the key value (count from 0)
+     * @param valPos position in each line of the map value (count from 0)
+     * @throws IOException If the file is not readable
+     * @throws NullPointerException If some of the inputs is null
+     * @throws InvalidClassException If the input type does not allow a string
+     * constructor
+     * @throws ParseException If the line is not of the correct type
+     */            
+    public static <K extends Number> void
+            readFileIntoMap(String file, String separator, Map<K, String> map, Class<K> keyCastType, int keyPos, int valPos)
+            throws IOException, NullPointerException, InvalidClassException, ParseException {
         if (map == null) {
             throw new NullPointerException("Input MAP cannot be null");
         } else if (file == null) {
@@ -580,11 +603,11 @@ public final class CollectionUtilities {
         } else if (separator == null) {
             throw new NullPointerException("Input Seprator cannot be null");
         }
-        Constructor<K> keyConstructor;
-        BufferedReader fileReader;
+        Constructor<K> keyConstructor;        
         String line;
         String[] splittedLine;
         int lineNo = 0;
+        int numFields = Math.max(keyPos, valPos)+1;
 
         try {
             keyConstructor = keyCastType.getConstructor(String.class);
@@ -606,11 +629,11 @@ public final class CollectionUtilities {
                     line = line.trim();
                     if (!line.isEmpty() && line.contains("\t")) {
                         splittedLine = line.split(separator);
-                        if (splittedLine.length < 2) {
+                        if (splittedLine.length < numFields) {
                             throw new ParseException("Line %d has an invalid format", lineNo);
                         }
                         try {
-                            map.put(keyConstructor.newInstance(splittedLine[0]), splittedLine[1]);
+                            map.put(keyConstructor.newInstance(splittedLine[keyPos]), splittedLine[valPos]);
                         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                             throw new ParseException("Cannot convert line %d into classes %s and %s", ex, lineNo, keyCastType.getCanonicalName());
                         }
