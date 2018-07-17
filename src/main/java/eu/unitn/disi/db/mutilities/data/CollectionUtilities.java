@@ -772,13 +772,33 @@ public final class CollectionUtilities {
         }
     }
 
-    
+    /**
+     * Normalize  all values so the sum is 1
+     * @param <K>
+     * @param map 
+     */
     public static <K> void normalizeMap(Map<K, Double> map) {
         Set<K> keys = map.keySet();
         double sum = 0.0 + map.values().stream().mapToDouble(Double::doubleValue).sum();
 
         for (K key : keys) {
             map.put(key, map.get(key)/sum);
+        }
+    }
+    
+    /**
+     * Shifts all values in the [0,1] range
+     * @param <K>
+     * @param map 
+     */
+    public static <K> void shiftMap(Map<K, Double> map) {
+        Set<K> keys = map.keySet();
+        double min  = map.values().stream().min(Double::compare).get();
+        double max  = map.values().stream().min(Double::compare).get();
+        
+
+        for (K key : keys) {
+            map.put(key, (map.get(key)-min)/(max-min));
         }
     }
 
